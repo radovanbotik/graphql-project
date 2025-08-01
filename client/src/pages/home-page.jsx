@@ -1,0 +1,28 @@
+import { JobCard } from "../components/JobCard";
+import { useGetJobs } from "../hooks/useGetJobs";
+
+export default function HomePage() {
+  const jobs = useGetJobs();
+  if (!jobs || jobs.length === 0) return <div>...loading skeleton...</div>;
+
+  return (
+    <div className="py-8 px-4">
+      <section className="max-w-4xl mx-auto">
+        <ul className="space-y-8">
+          {jobs.map(job => (
+            <li key={job.id}>
+              <JobCard
+                jobId={job.id}
+                jobTitle={job.title}
+                jobDescription={job.description}
+                companyName={job.company.name}
+                companyId={job.company.id}
+                date={job.date}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  );
+}
