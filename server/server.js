@@ -6,6 +6,7 @@ import { readFile } from "node:fs/promises";
 import { resolvers } from "./resolvers.js";
 import { authMiddleware, handleLogin } from "./auth.js";
 import { getUser } from "./database/users.js";
+import { createCompanyLoader } from "./database/companies.js";
 
 const PORT = 9000;
 const app = express();
@@ -39,16 +40,16 @@ Then after middleware runs:
 req.auth = { sub: "user123", email: "someone@example.com" }
 */
 async function getContext({ req }) {
+  //instantiating a new DataLoader per request:
+  //No cross-request caching
+  //Prevents the infinite caching bug, where stale data could leak between users if DataLoader is shared globally
+  const companyLoader = createCompanyLoader();
+  const context = { companyLoader };
+
   if (req.auth) {
-    const user = await getUser(req.auth.sub);
-    return { user };
+    context.user = await getUser(req.auth.sub);
   }
-  // const companyLoader = createCompanyLoader();
-  // const context = { companyLoader };
-  // if (req.auth) {
-  //   context.user = await getUser(req.auth.sub);
-  // }
-  // return context;
+  return context;
 }
 
 const apolloServer = new ApolloServer({

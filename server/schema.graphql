@@ -1,7 +1,8 @@
 # regular comments that does not show in apollo client
 # READING
 type Query {
-  jobs: [Job!]
+  # set limit for pagination purposes, it is optional
+  jobs(limit: Int, offset: Int): JobSublist
   job(id: ID!): Job!
   company(id: ID!): Company!
 }
@@ -11,6 +12,11 @@ type Mutation {
   createJob(input: CreateJobInput!): Job
   deleteJob(input: DeleteJobInput!): Job
   updateJob(input: UpdateJobInput!): Job
+}
+
+type JobSublist {
+  jobs: [Job!]!
+  totalCount: Int!
 }
 
 """

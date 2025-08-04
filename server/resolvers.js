@@ -1,11 +1,16 @@
 import { GraphQLError } from "graphql";
 import { getCompany } from "./database/companies.js";
-import { createJob, deleteJob, getJob, getJobs, getJobsByCompanyId, updateJob } from "./database/jobs.js";
-import { getUser } from "../client/src/lib/auth.js";
+import { countJobs, createJob, deleteJob, getJob, getJobs, getJobsByCompanyId, updateJob } from "./database/jobs.js";
 
 export const resolvers = {
   Query: {
-    jobs: () => getJobs(),
+    jobs: async (_root, args) => {
+      const jobs = await getJobs(args.limit, args.offset);
+      return {
+        jobs: jobs,
+        totalCount: await countJobs(),
+      };
+    },
     job: async (_root, args) => {
       const job = await getJob(args.id);
       if (!job) {
@@ -23,7 +28,10 @@ export const resolvers = {
   },
   Job: {
     date: self => toIsoDate(self.createdAt),
-    company: self => getCompany(self.companyId),
+    //That ids array — [5, 2, 9] — is generated automatically by DataLoader when you (or GraphQL) call:
+    //These .load() calls are made as part of resolving fields in your GraphQL resolvers.
+    //DataLoader collects those in the order they’re called, and then calls your batch function with that ordered array.
+    company: (self, _args, context) => context.companyLoader.load(self.companyId),
   },
   Company: {
     jobs: self => getJobsByCompanyId(self.id),
