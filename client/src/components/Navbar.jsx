@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { getUser } from "../lib/auth";
 
 export function Navbar() {
   return (
@@ -7,9 +8,16 @@ export function Navbar() {
         <Link to={"/"} className="px-3 py-2 bg-green-500 text-white font-bold block text-center ">
           Home
         </Link>
-        <Link to={"/login"} className="px-3 py-2 bg-blue-500 text-white font-bold block text-center ml-auto">
-          Sign In
-        </Link>
+        {getUser() && (
+          <Link to={"/jobs/new"} className="px-3 py-2 bg-blue-500 text-white font-bold block text-center ml-auto">
+            Create New Job
+          </Link>
+        )}
+        {!getUser() && (
+          <Link to={"/login"} className="px-3 py-2 bg-blue-500 text-white font-bold block text-center ml-auto">
+            Sign In
+          </Link>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { GraphQLError } from "graphql";
 import { getCompany } from "./database/companies.js";
 import { createJob, deleteJob, getJob, getJobs, getJobsByCompanyId, updateJob } from "./database/jobs.js";
+import { getUser } from "../client/src/lib/auth.js";
 
 export const resolvers = {
   Query: {
@@ -33,8 +34,27 @@ export const resolvers = {
       if (!context.user) throw unauthorizedError("User must be authenticated first");
       return createJob({ companyId: context.user.companyId, title: input.title, description: input.description });
     },
-    deleteJob: (_root, { input }) => deleteJob(input.id),
-    updateJob: (_root, { input }) => updateJob({ id: input.id, title: input.title, description: input.description }),
+    deleteJob: async (_root, { input }, context) => {
+      if (!context.user) throw unauthorizedError("User must be authenticated first");
+      const job = await deleteJob(input.id, context.user.companyId);
+      if (!job) {
+        throw notFoundError(`There is no job with id :${input.id} created by your organisation`);
+      }
+      return job;
+    },
+    updateJob: async (_root, { input }, context) => {
+      if (!context.user) throw unauthorizedError("User must be authenticated first");
+      const job = await updateJob({
+        id: input.id,
+        title: input.title,
+        description: input.description,
+        companyId: context.user.companyId,
+      });
+      if (!job) {
+        throw notFoundError(`There is no job with id :${input.id} created by your organisation`);
+      }
+      return job;
+    },
   },
 };
 
