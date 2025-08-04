@@ -1,15 +1,20 @@
+import { useQuery } from "@apollo/client";
 import { JobCard } from "../components/JobCard";
-import { useGetJobs } from "../hooks/useGetJobs";
+import { getJobsQuery } from "../graphql/queries";
 
 export default function HomePage() {
-  const jobs = useGetJobs();
-  if (!jobs || jobs.length === 0) return <div>...loading skeleton...</div>;
+  const result = useQuery(getJobsQuery, {
+    fetchPolicy: "network-only",
+  });
+
+  if (result.loading) return <div>...loading skeleton...</div>;
+  if (result.error) return <div className="shadow bg-red-100 p-4">{result.error.message}</div>;
 
   return (
     <div className="py-8 px-4">
       <section className="max-w-4xl mx-auto">
         <ul className="space-y-8">
-          {jobs.map(job => (
+          {result.data.jobs.map(job => (
             <li key={job.id}>
               <JobCard
                 jobId={job.id}

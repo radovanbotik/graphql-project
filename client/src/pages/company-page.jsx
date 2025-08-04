@@ -1,22 +1,24 @@
+import { useQuery } from "@apollo/client";
 import { CompanyCard } from "../components/CompanyCard";
-import { useGetCompany } from "../hooks/useGetCompany";
 import { Link, useParams } from "react-router";
+import { getCompanyByIdQuery } from "../graphql/queries";
 
 export default function CompanyPage() {
   const { companyId } = useParams();
+  const result = useQuery(getCompanyByIdQuery, {
+    variables: { id: companyId },
+  });
 
-  const state = useGetCompany(companyId);
-
-  if (state.loading) return <div>...loading skeleton...</div>;
-  if (state.error) return <div className="shadow bg-red-100 p-4">...somethign went wrong...</div>;
+  if (result.loading) return <div>...loading skeleton...</div>;
+  if (result.error) return <div className="shadow bg-red-100 p-4">{result.error.message}</div>;
 
   return (
     <div className="py-8 px-4">
       <section className="max-w-4xl mx-auto space-y-6">
-        <CompanyCard name={state.company.name} description={state.company.description} />
+        <CompanyCard name={result.data.company.name} description={result.data.company.description} />
         <div>
           <ul className="space-y-3">
-            {state.company.jobs.map(job => (
+            {result.data.company.jobs.map(job => (
               <li key={job.id}>
                 <div className="shadow bg-gray-100 flex items-center justify-between p-4">
                   <span>{job.title}</span>
